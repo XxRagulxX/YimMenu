@@ -16,6 +16,17 @@ namespace rage
 	class netConnectionManager;
 	class netArrayMgr;
 	class netEventMgr;
+	class netCatalog;
+	class netCatalogBaseItem;
+	class fwBasePool;
+	class fwVehiclePool;
+	class rlSessionInfo;
+	class rlGamerHandle;
+	class rlTaskStatus;
+	class rlScTaskStatus;
+	class rlSessionByGamerTaskResult;
+	class rlQueryPresenceAttributesContext;
+	class rlScGamerHandle;
 }
 class CPedFactory;
 class CNetGamePlayer;
@@ -24,6 +35,8 @@ class CNetworkObjectMgr;
 class CNetworkPlayerMgr;
 class PoolEncryption;
 class CStatsMgr;
+class CNetShopTransaction;
+class CNetworkSession;
 
 namespace YimMenu
 {
@@ -42,6 +55,11 @@ namespace YimMenu
 		using SendEventAck = void(*)(rage::netEventMgr* event_manager, CNetGamePlayer* source_player);
 		using ScriptVM = int (*)(uint64_t* stack, int64_t** scr_globals, rage::scrProgram* program, void* ctx);
 		using GetPackedStatData = void(*)(int index, int* row, bool* is_bool, bool* unk);
+		using GetCatalogItem = rage::netCatalogBaseItem*(*)(rage::netCatalog* catalog, std::uint32_t* hash);
+		using GetActiveBasket = CNetShopTransaction*(*)(void* mgr, int* out_txn_id);
+		using JoinSessionByInfo = bool (*)(CNetworkSession* network, rage::rlSessionInfo* info, int unk, int flags, rage::rlGamerHandle* handles, int num_handles);
+		using GetSessionByGamerHandle = bool (*)(int profile_index, rage::rlGamerHandle* handles, int num_handles, rage::rlSessionByGamerTaskResult* results, int num_results, bool* success, rage::rlTaskStatus* state);
+		using GetPresenceAttributes = bool (*)(int profile_index, rage::rlScGamerHandle* handles, int num_handles, rage::rlQueryPresenceAttributesContext** contexts, int count, rage::rlScTaskStatus* state);
 	}
 
 	struct PointerData
@@ -99,11 +117,24 @@ namespace YimMenu
 		rage::netArrayMgr** NetArrayMgr;
 		CStatsMgr* StatsMgr;
 		Functions::GetPackedStatData GetPackedStatData;
+		rage::netCatalog* NetCatalog;
+		Functions::GetCatalogItem GetCatalogItem;
+		void** TransactionMgr;
+		Functions::GetActiveBasket GetActiveBasket;
+		PoolEncryption* PedPool;
+		PoolEncryption* ObjectPool;
+		rage::fwVehiclePool*** VehiclePool;
+		PVOID HttpStartRequest;
+		CNetworkSession** NetworkSession;
+		Functions::JoinSessionByInfo JoinSessionByInfo;
+		Functions::GetSessionByGamerHandle GetSessionByGamerHandle;
+		Functions::GetPresenceAttributes GetPresenceAttributes;
 	};
 
 	struct Pointers : PointerData
 	{
 		bool Init();
+		bool LateInit();
 	};
 
 	inline YimMenu::Pointers Pointers;

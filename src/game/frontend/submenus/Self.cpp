@@ -3,11 +3,6 @@
 #include "core/util/Joaat.hpp"
 #include "game/frontend/items/Items.hpp"
 
-namespace YimMenu::Features
-{
-	// BoolCommand _RecoveryEnabled("recoveryenabled", "Recovery Enabled", "Is the recovery feature enabled");
-}
-
 namespace YimMenu::Submenus
 {
 	Self::Self() :
@@ -25,6 +20,7 @@ namespace YimMenu::Submenus
 		globalsGroup->AddItem(std::make_shared<BoolCommandItem>("otr"_J));
 		globalsGroup->AddItem(std::make_shared<BoolCommandItem>("noragdoll"_J));
 		globalsGroup->AddItem(std::make_shared<BoolCommandItem>("noidlekick"_J));
+		globalsGroup->AddItem(std::make_shared<BoolCommandItem>("unlimitedoxygen"_J));
 
 		auto clearWanted = std::make_shared<Group>("", 1);
 		clearWanted->AddItem(std::make_shared<ConditionalItem>("neverwanted"_J, std::make_shared<CommandItem>("clearwanted"_J), true));
@@ -36,8 +32,14 @@ namespace YimMenu::Submenus
 		wantedGroup->AddItem(std::make_shared<ConditionalItem>("freezewanted"_J, clearWanted, true));
 		wantedGroup->AddItem(std::make_shared<ConditionalItem>("neverwanted"_J, setWanted, true));
 
+		toolsGroup->AddItem(std::make_shared<CommandItem>("skipcutscene"_J));
 		toolsGroup->AddItem(std::make_shared<CommandItem>("suicide"_J));
-
+		toolsGroup->AddItem(std::make_shared<CommandItem>("heal"_J));
+		toolsGroup->AddItem(std::make_shared<CommandItem>("cleardamage"_J));
+		toolsGroup->AddItem(std::make_shared<CommandItem>("fillinventory"_J));
+		
+		movementGroup->AddItem(std::make_shared<BoolCommandItem>("standonvehicles"_J));
+		movementGroup->AddItem(std::make_shared<BoolCommandItem>("disableactionmode"_J));
 		movementGroup->AddItem(std::make_shared<BoolCommandItem>("superrun"_J));
 		movementGroup->AddItem(std::make_shared<BoolCommandItem>("superjump"_J));
 		movementGroup->AddItem(std::make_shared<BoolCommandItem>("noclip"_J));
@@ -77,6 +79,7 @@ namespace YimMenu::Submenus
 
 		vehicleMiscGroup->AddItem(std::make_shared<BoolCommandItem>("speedometer"_J));
 		vehicleMiscGroup->AddItem(std::make_shared<BoolCommandItem>("seatbelt"_J));
+		vehicleMiscGroup->AddItem(std::make_shared<BoolCommandItem>("allowhatsinvehicles"_J));
 
 		vehicle->AddItem(vehicleGlobalsGroup);
 		vehicle->AddItem(vehicleMiscGroup);

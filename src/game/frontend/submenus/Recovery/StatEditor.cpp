@@ -214,6 +214,21 @@ namespace YimMenu::Submenus
 			STATS::SET_PACKED_STAT_INT_CODE(info.m_Index, value.m_AsInt, -1);
 	}
 
+	static void WritePackedStatRange(int start, int end, int value)
+	{
+		for (int i = start; i <= end; i++)
+		{
+			auto info = GetPackedStatInfo(i);
+			if (!info.m_IsValid)
+				break; // the rest are probably not valid, either
+
+			if (info.m_IsBoolStat)
+				STATS::SET_PACKED_STAT_BOOL_CODE(info.m_Index, static_cast<bool>(value), -1);
+			else
+				STATS::SET_PACKED_STAT_INT_CODE(info.m_Index, value, -1);
+		}
+	}
+
 	static bool RenderPackedStatEditor(StatValue& value, const PackedStatInfo& info)
 	{
 		ImGui::SetNextItemWidth(150.f);
@@ -228,8 +243,12 @@ namespace YimMenu::Submenus
 		auto menu = std::make_shared<Category>("Stat Editor");
 		auto normal = std::make_shared<Group>("Regular");
 		auto packed = std::make_shared<Group>("Packed");
+		auto packed_range = std::make_shared<Group>("Packed Range");
 
 		normal->AddItem(std::make_unique<ImGuiItem>([] {
+			if (!NativeInvoker::AreHandlersCached())
+				return ImGui::TextDisabled("Natives not cached yet");
+
 			static StatInfo current_info;
 			static char stat_buf[48]{};
 			static StatValue value{};
@@ -243,7 +262,7 @@ namespace YimMenu::Submenus
 			}
 
 			if (!current_info.IsValid())
-				return ImGui::Text("Stat not found");
+				return ImGui::TextDisabled("Stat not found");
 			else if (current_info.m_Normalized)
 			{
 				ImGui::Text("Normalized name to: %s", current_info.m_Name.data());
@@ -271,6 +290,9 @@ namespace YimMenu::Submenus
 		}));
 
 		packed->AddItem(std::make_unique<ImGuiItem>([] {
+			if (!NativeInvoker::AreHandlersCached())
+				return ImGui::TextDisabled("Natives not cached yet");
+
 			// TODO: improve packed stat editor
 			static PackedStatInfo current_info{0, false, true};
 			static StatValue value{};
@@ -284,22 +306,42 @@ namespace YimMenu::Submenus
 			}
 
 			if (!current_info.IsValid())
-				return ImGui::Text("Index not valid");
+				return ImGui::TextDisabled("Index not valid");
 
 			RenderPackedStatEditor(value, current_info);
 
-			if (ImGui::Button("Refresh"))
+			if (ImGui::Button("Refresh##packed"))
 				ReadPackedStat(value, current_info);
 			ImGui::SameLine();
-			if (ImGui::Button("Write"))
+			if (ImGui::Button("Write##packed"))
 				FiberPool::Push([] {
 					WritePackedStat(value, current_info);
 				});
 		}));
 
+		packed_range->AddItem(std::make_unique<ImGuiItem>([] {
+			if (!NativeInvoker::AreHandlersCached())
+				return ImGui::TextDisabled("Natives not cached yet");
+
+			static int start{}, end{}, value{};
+
+			ImGui::SetNextItemWidth(150.f);
+			ImGui::InputInt("Start", &start);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(150.f);
+			ImGui::InputInt("End", &end);
+			ImGui::SetNextItemWidth(150.f);
+			ImGui::InputScalar("Value##packed_range", ImGuiDataType_U8, &value);
+			ImGui::SameLine();
+			if (ImGui::Button("Write##packed_range"))
+				FiberPool::Push([] {
+					WritePackedStatRange(start, end, value);
+				});
+		}));
 
 		menu->AddItem(std::move(normal));
 		menu->AddItem(std::move(packed));
+		menu->AddItem(std::move(packed_range));
 		return menu;
 	}
 }
