@@ -147,6 +147,7 @@ namespace YimMenu
 		PVOID GetPoolType;
 		BytePatch SetJoinRequestPoolTypePatch;
 		BytePatch HandleJoinRequestIgnorePoolPatch;
+		int* BypassGTAPlus;
 	};
 
 	struct Pointers : PointerData
