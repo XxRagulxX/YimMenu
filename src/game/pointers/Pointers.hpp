@@ -40,6 +40,7 @@ class PoolEncryption;
 class CStatsMgr;
 class CNetShopTransaction;
 class CNetworkSession;
+class CStatsMpCharacterMappingData;
 
 namespace YimMenu
 {
@@ -143,7 +144,6 @@ namespace YimMenu
 		BytePatch GetLockOnPosPatch;
 		BytePatch ShouldAllowDriverLockOnPatch;
 		BytePatch AllowPausingInSessionPatch;
-		PVOID OpenPauseMenu;
 		PVOID GetPoolType;
 		BytePatch SetJoinRequestPoolTypePatch;
 		BytePatch HandleJoinRequestIgnorePoolPatch;
