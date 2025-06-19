@@ -42,6 +42,8 @@ namespace YimMenu::Hooks
 		extern BOOL GetThreadContext(HANDLE hThread, LPCONTEXT lpContext);
 		extern void HttpStartRequest(void* request);
 		extern bool BattlEyeServerProcessPlayerJoin(CBattlEyePlayerModifyInterface* server_iface, CBattlEyePlayerModifyContext* context);
+		extern std::uint32_t GetAnticheatInitializedHash();
+		extern std::uint32_t GetAnticheatInitializedHash2(void* ac_var, std::uint32_t seed);
 	}
 
 	namespace Info
