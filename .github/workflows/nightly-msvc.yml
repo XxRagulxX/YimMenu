@@ -1,4 +1,4 @@
-name: Nightly Build
+name: Nightly Build MSVC
 
 on:
   workflow_dispatch:
