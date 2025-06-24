@@ -8,22 +8,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check_recent_commit:
-    runs-on: ubuntu-latest
-    name: Check Recent Commit
-    outputs:
-      should_run: ${{ steps.should_run.outputs.should_run }}
-    steps:
-      - uses: actions/checkout@v4
+  # check_recent_commit:
+  #   runs-on: ubuntu-latest
+  #   name: Check Recent Commit
+  #   outputs:
+  #     should_run: ${{ steps.should_run.outputs.should_run }}
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - id: should_run
-        name: Check if latest commit date is within the previous 24 hours
-        run: |
-          if [ -z "$(git rev-list --since="24 hours ago" --all)" ]; then
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          else
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          fi
+  #     - id: should_run
+  #       name: Check if latest commit date is within the previous 24 hours
+  #       run: |
+  #         if [ -z "$(git rev-list --since="24 hours ago" --all)" ]; then
+  #           echo "should_run=false" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "should_run=true" >> $GITHUB_OUTPUT
+  #         fi
 
   build_nightly:
     runs-on: [self-hosted, Windows]
