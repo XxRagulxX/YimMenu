@@ -28,11 +28,11 @@ jobs:
   build_nightly:
     runs-on: [self-hosted, Windows]
     name: Build Nightly
-    needs: check_recent_commit
-    if: needs.check_recent_commit.outputs.should_run == 'true'
-    outputs:
-      full_sha: ${{ steps.var.outputs.full_sha }}
-      short_sha: ${{ steps.var.outputs.short_sha }}
+    # needs: check_recent_commit
+    # if: needs.check_recent_commit.outputs.should_run == 'true'
+    # outputs:
+    #   full_sha: ${{ steps.var.outputs.full_sha }}
+    #   short_sha: ${{ steps.var.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
         with:
