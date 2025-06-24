@@ -1,7 +1,7 @@
 name: Nightly Build
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:
 
 concurrency:
   group: nightly
@@ -26,7 +26,7 @@ jobs:
           fi
 
   build_nightly:
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows]
     name: Build Nightly
     needs: check_recent_commit
     if: needs.check_recent_commit.outputs.should_run == 'true'
@@ -83,18 +83,33 @@ jobs:
             const repo = context.repo.repo;
             const tag = "nightly";
 
-            const releases = await github.rest.repos.listReleases({ owner, repo });
+            // List all releases and find the release by tag
+            const releases = await github.rest.repos.listReleases({
+              owner: owner,
+              repo: repo,
+            });
+
             const release = releases.data.find(release => release.tag_name === tag);
 
+            // Check if the release exists and delete it
             if (release) {
-              await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
+              await github.rest.repos.deleteRelease({
+                owner: owner,
+                repo: repo,
+                release_id: release.id,
+              });
               console.log(`Deleted release with ID ${release.id}`);
             } else {
               console.log("No existing release to delete");
             }
 
+            // Delete the tag
             try {
-              await github.rest.git.deleteRef({ owner, repo, ref: `tags/${tag}` });
+              await github.rest.git.deleteRef({
+                owner: owner,
+                repo: repo,
+                ref: `tags/${tag}`,
+              });
               console.log(`Deleted tag ${tag}`);
             } catch (error) {
               console.error(`Error deleting tag: ${error.message}`);
@@ -119,12 +134,22 @@ jobs:
           tag_name: nightly
           body: |
             **This release has been built by Github Actions**
-            [Link to build](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ld_sha.outputs.build_sha }}
+            [Link to build](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            Build SHA256:
             ```
+            ${{ steps.build_sha.outputs.build_sha }}
+            ```
+            To verify the build SHA256 during the action, click the build link, go-to "Create Release", open the Echo build sha256 step and read the sha256.
 
             You can download the build artifacts, generate a SHA256 checksum and compare it with the below binary.
+            Build artifacts ARE NOT automatically the same as release assets since release assets can be modified afterwards.
 
-            These are nightly builds of YimMenuV2, provided for testing purposes only.
+            These are nightly builds of YimMenuV2, they are provided for testing purposes only:
+            - Test if your build environment produces a broken YimMenuV2.dll
+            - Test if source code is out of date and no longer compatible with the current version of Grand Theft Auto V: Enhanced
+
+            If you wish to use this menu as-is you are on your own, no warranty is provided.
 
             Full Commit Hash:
             ```
