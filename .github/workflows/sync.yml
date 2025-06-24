@@ -40,5 +40,5 @@ jobs:
           commit-message: "Sync Merge upstream enhanced into fork enhanced"
           title: "Sync Merge enhanced into dev"
           body: "Automated PR to sync changes from upstream enhanced branch into dev for manual review."
-          base: dev
-          branch: enhanced
+          base: enhanced
+          branch: dev
