@@ -13,13 +13,9 @@ jobs:
     name: build_nightly
     strategy:
       matrix:
-        compiler: ["Zig", "Clang"]
+        compiler: ["Clang"]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Zig
-        if: matrix.compiler == 'Zig'
-        uses: mlugg/setup-zig@v2
 
       - name: Setup MinGW
         if: matrix.compiler == 'Clang'
