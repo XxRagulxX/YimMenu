@@ -1,4 +1,4 @@
-name: Sync enhance from upstream and PR to Dev
+name: Sync enhanced from upstream and PR to Dev
 
 on:
   schedule:
@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync-enhance:
+  sync-enhanced:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout enhance branch
+      - name: Checkout enhanced branch
         uses: actions/checkout@v4
         with:
-          ref: enhance
+          ref: enhanced
           fetch-depth: 0
 
       - name: Set up Git
@@ -26,19 +26,19 @@ jobs:
           git remote add upstream https://github.com/YimMenu/YimMenuV2.git
           git fetch upstream
 
-      - name: Merge upstream enhance into fork enhance
+      - name: Merge upstream enhanced into fork enhanced
         run: |
-          git merge upstream/enhance --no-edit || true
+          git merge upstream/enhanced --no-edit || true
 
-      - name: Push updated enhance branch
+      - name: Push updated enhanced branch
         run: |
-          git push origin enhance
-      - name: Create Pull Request from enhance into dev
+          git push origin enhanced
+      - name: Create Pull Request from enhanced into dev
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Sync Merge upstream enhance into fork enhance"
-          title: "Sync Merge enhance into dev"
-          body: "Automated PR to sync changes from upstream enhance branch into dev for manual review."
+          commit-message: "Sync Merge upstream enhanced into fork enhanced"
+          title: "Sync Merge enhanced into dev"
+          body: "Automated PR to sync changes from upstream enhanced branch into dev for manual review."
           base: dev
-          branch: enhance
+          branch: enhanced
