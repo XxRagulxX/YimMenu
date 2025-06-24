@@ -8,9 +8,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cross-compilation:
+  build_nightly:
     runs-on: ubuntu-latest
-    name: Cross-compilation
+    name: build_nightly
     strategy:
       matrix:
         compiler: ["Zig", "Clang"]
