@@ -1,4 +1,4 @@
-name: Sync enhanced from upstream and PR to Dev
+name: Sync Branch
 
 on:
   schedule:
