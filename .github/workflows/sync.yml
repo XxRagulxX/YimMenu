@@ -1,53 +1,64 @@
-name: Sync Branch
+name: Sync Upstream Enhanced and PR to Dev
 
 on:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 */2 * * *'  # Every 2 hours
   workflow_dispatch:
 
 permissions:
-   contents: write
-   actions: write
-   pull-requests: write
-   packages: write
+  contents: write
+  actions: write
+  pull-requests: write
+  packages: write
 
 jobs:
-  sync-enhanced:
+  sync-and-pr:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout enhanced branch
+      - name: Checkout forked enhanced branch
         uses: actions/checkout@v4
         with:
           ref: enhanced
           fetch-depth: 0
 
-      - name: Set up Git
+      - name: Set up git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add upstream remote and fetch
+      - name: Add upstream and fetch
         run: |
           git remote add upstream https://github.com/YimMenu/YimMenuV2.git
           git fetch upstream
 
-      - name: Merge upstream enhanced into fork enhanced
+      - name: Check for new commits from upstream
+        id: check_commits
         run: |
-          git merge upstream/enhanced --no-edit || true
+          # Count commits in upstream/enhanced not in origin/enhanced
+          NEW_COMMITS=$(git rev-list --count HEAD..upstream/enhanced)
+          echo "new_commits=$NEW_COMMITS" >> $GITHUB_OUTPUT
 
-      - name: Push updated enhanced branch
+      - name: Merge upstream/enhanced if new commits exist
+        if: steps.check_commits.outputs.new_commits != '0'
+        run: |
+          git merge upstream/enhanced --no-edit
+
+      - name: Push updated enhanced branch if new commits exist
+        if: steps.check_commits.outputs.new_commits != '0'
         env:
           PAT_WORKFLOW: ${{ secrets.PAT_WORKFLOW }}
         run: |
           git push https://x-access-token:${PAT_WORKFLOW}@github.com/${{ github.repository }} enhanced
 
-      - name: Create Pull Request from enhanced into dev
+      - name: Create Pull Request from enhanced into dev if new commits exist
+        if: steps.check_commits.outputs.new_commits != '0'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.PAT_WORKFLOW }}
-          commit-message: "Sync Merge upstream enhanced into fork enhanced"
-          title: "Sync Merge enhanced into dev"
-          body: "Automated PR to sync changes from upstream enhanced branch into dev for manual review."
-          base: enhanced
-          branch: dev
+          commit-message: "Sync: Merge new upstream commits into fork enhanced"
+          title: "Sync: Merge new upstream commits into dev"
+          body: |
+            Automated PR to sync new commits from upstream enhanced branch into dev for manual review.
+          base: dev
+          branch: enhanced
