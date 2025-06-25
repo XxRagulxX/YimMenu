@@ -6,8 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
-  contents: write
+   contents: write
+   actions: write
+   pull-requests: write
+   packages: write
 
 jobs:
   sync-enhanced:
