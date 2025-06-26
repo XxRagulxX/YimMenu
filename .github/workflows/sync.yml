@@ -35,7 +35,6 @@ jobs:
       - name: Check for new commits from upstream
         id: check_commits
         run: |
-          # Count commits in upstream/enhanced not in origin/enhanced
           NEW_COMMITS=$(git rev-list --count HEAD..upstream/enhanced)
           echo "new_commits=$NEW_COMMITS" >> $GITHUB_OUTPUT
 
@@ -60,5 +59,50 @@ jobs:
           title: "Sync: Merge new upstream commits into dev"
           body: |
             Automated PR to sync new commits from upstream enhanced branch into dev for manual review.
-          base: Dev
+          base: dev
           branch: enhanced
+
+      # --------- NEW OPTION: If no new upstream commits, check enhanced vs dev ----------
+      - name: Check for enhanced commits not in dev
+        if: steps.check_commits.outputs.new_commits == '0'
+        id: check_enhanced_vs_dev
+        run: |
+          # Find all commit hashes in enhanced not in dev (newest first)
+          COMMITS=$(git rev-list dev..enhanced)
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Create PRs for each new commit from enhanced to dev
+        if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits != ''
+        env:
+          PAT_WORKFLOW: ${{ secrets.PAT_WORKFLOW }}
+        run: |
+          #!/bin/bash
+          set -e
+          # Get commit hashes, oldest first
+          COMMITS=$(git rev-list --reverse dev..enhanced)
+          for COMMIT in $COMMITS; do
+            # Create a temp branch for this commit
+            BRANCH_NAME="sync-enhanced-to-dev-$COMMIT"
+            git checkout dev
+            git checkout -b $BRANCH_NAME
+            git cherry-pick $COMMIT
+
+            # Push the branch
+            git push https://x-access-token:${PAT_WORKFLOW}@github.com/${{ github.repository }} $BRANCH_NAME
+
+            # Get commit message for PR title/body
+            TITLE=$(git log -1 --pretty=format:"%s" $COMMIT)
+            BODY=$(git log -1 --pretty=format:"%B" $COMMIT)
+
+            # Create PR using GitHub CLI
+            gh pr create \
+              --base dev \
+              --head $BRANCH_NAME \
+              --title "$TITLE" \
+              --body "$BODY" \
+              --repo ${{ github.repository }}
+          done
+
+      - name: No new commits to sync
+        if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits == ''
+        run: echo "No new commits to sync from enhanced to dev."
