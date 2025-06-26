@@ -68,7 +68,7 @@ jobs:
         id: check_enhanced_vs_dev
         run: |
           # Find all commit hashes in enhanced not in dev (newest first)
-          COMMITS=$(git rev-list dev..enhanced)
+          COMMITS=$(git rev-list Dev..enhanced)
           echo "commits=$COMMITS" >> $GITHUB_OUTPUT
 
       - name: Create PRs for each new commit from enhanced to dev
@@ -79,10 +79,10 @@ jobs:
           #!/bin/bash
           set -e
           # Get commit hashes, oldest first
-          COMMITS=$(git rev-list --reverse dev..enhanced)
+          COMMITS=$(git rev-list --reverse Dev..enhanced)
           for COMMIT in $COMMITS; do
             # Create a temp branch for this commit
-            BRANCH_NAME="sync-enhanced-to-dev-$COMMIT"
+            BRANCH_NAME="sync-enhanced-to-Dev-$COMMIT"
             git checkout Dev
             git checkout -b $BRANCH_NAME
             git cherry-pick $COMMIT
