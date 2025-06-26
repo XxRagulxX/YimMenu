@@ -27,28 +27,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add upstream and fetch all branches
+      - name: Add upstream and fetch
         run: |
           git remote add upstream https://github.com/YimMenu/YimMenuV2.git
-          git fetch --all
-
-      - name: Ensure Dev branch exists locally
-        run: |
-          if git show-ref --verify --quiet refs/heads/Dev; then
-            echo "Local Dev branch exists."
-          elif git ls-remote --exit-code --heads origin Dev; then
-            git fetch origin Dev:Dev
-            echo "Fetched Dev branch from origin."
-          else
-            echo "No Dev branch found on remote or locally. Creating Dev branch from enhanced."
-            git checkout -b Dev
-            git push origin Dev
-            git checkout enhanced
-          fi
+          git fetch upstream
 
       - name: Check for new commits from upstream
         id: check_commits
         run: |
+          # Count commits in upstream/enhanced not in origin/enhanced
           NEW_COMMITS=$(git rev-list --count HEAD..upstream/enhanced)
           echo "new_commits=$NEW_COMMITS" >> $GITHUB_OUTPUT
 
@@ -75,47 +62,3 @@ jobs:
             Automated PR to sync new commits from upstream enhanced branch into Dev for manual review.
           base: Dev
           branch: enhanced
-
-      # --------- NEW OPTION: If no new upstream commits, check enhanced vs Dev ----------
-      - name: Check for enhanced commits not in Dev
-        if: steps.check_commits.outputs.new_commits == '0'
-        id: check_enhanced_vs_dev
-        run: |
-          COMMITS=$(git rev-list Dev..enhanced)
-          {
-            echo "commits<<EOF"
-            echo "$COMMITS"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-      - name: Create PRs for each new commit from enhanced to Dev
-        if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits != ''
-        env:
-          PAT_WORKFLOW: ${{ secrets.PAT_WORKFLOW }}
-        run: |
-          set -e
-          COMMITS="${{ steps.check_enhanced_vs_dev.outputs.commits }}"
-          # Remove empty lines, just in case
-          COMMITS=$(echo "$COMMITS" | grep -v '^$')
-          for COMMIT in $COMMITS; do
-            BRANCH_NAME="sync-enhanced-to-Dev-$COMMIT"
-            git checkout Dev
-            git checkout -b $BRANCH_NAME
-            git cherry-pick $COMMIT
-
-            git push https://x-access-token:${PAT_WORKFLOW}@github.com/${{ github.repository }} $BRANCH_NAME
-
-            TITLE=$(git log -1 --pretty=format:"%s" $COMMIT)
-            BODY=$(git log -1 --pretty=format:"%B" $COMMIT)
-
-            gh pr create \
-              --base Dev \
-              --head $BRANCH_NAME \
-              --title "$TITLE" \
-              --body "$BODY" \
-              --repo ${{ github.repository }}
-          done
-
-      - name: No new commits to sync
-        if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits == ''
-        run: echo "No new commits to sync from enhanced to Dev."
