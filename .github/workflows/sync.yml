@@ -60,5 +60,5 @@ jobs:
           title: "Sync: Merge new upstream commits into dev"
           body: |
             Automated PR to sync new commits from upstream enhanced branch into dev for manual review.
-          base: dev
+          base: Dev
           branch: enhanced
