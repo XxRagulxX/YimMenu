@@ -94,7 +94,9 @@ jobs:
           PAT_WORKFLOW: ${{ secrets.PAT_WORKFLOW }}
         run: |
           set -e
-          COMMITS=$(git rev-list --reverse Dev..enhanced)
+          COMMITS="${{ steps.check_enhanced_vs_dev.outputs.commits }}"
+          # Remove empty lines, just in case
+          COMMITS=$(echo "$COMMITS" | grep -v '^$')
           for COMMIT in $COMMITS; do
             BRANCH_NAME="sync-enhanced-to-Dev-$COMMIT"
             git checkout Dev
