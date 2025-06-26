@@ -59,7 +59,7 @@ jobs:
           title: "Sync: Merge new upstream commits into dev"
           body: |
             Automated PR to sync new commits from upstream enhanced branch into dev for manual review.
-          base: dev
+          base: Dev
           branch: enhanced
 
       # --------- NEW OPTION: If no new upstream commits, check enhanced vs dev ----------
@@ -83,7 +83,7 @@ jobs:
           for COMMIT in $COMMITS; do
             # Create a temp branch for this commit
             BRANCH_NAME="sync-enhanced-to-dev-$COMMIT"
-            git checkout dev
+            git checkout Dev
             git checkout -b $BRANCH_NAME
             git cherry-pick $COMMIT
 
@@ -96,7 +96,7 @@ jobs:
 
             # Create PR using GitHub CLI
             gh pr create \
-              --base dev \
+              --base Dev \
               --head $BRANCH_NAME \
               --title "$TITLE" \
               --body "$BODY" \
