@@ -81,9 +81,12 @@ jobs:
         if: steps.check_commits.outputs.new_commits == '0'
         id: check_enhanced_vs_dev
         run: |
-          # Find all commit hashes in enhanced not in Dev (newest first)
           COMMITS=$(git rev-list Dev..enhanced)
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          {
+            echo "commits<<EOF"
+            echo "$COMMITS"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Create PRs for each new commit from enhanced to Dev
         if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits != ''
