@@ -27,10 +27,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add upstream and fetch
+      - name: Add upstream and fetch all branches
         run: |
           git remote add upstream https://github.com/YimMenu/YimMenuV2.git
-          git fetch upstream
+          git fetch --all
+
+      - name: Ensure Dev branch exists locally
+        run: |
+          if git show-ref --verify --quiet refs/heads/Dev; then
+            echo "Local Dev branch exists."
+          elif git ls-remote --exit-code --heads origin Dev; then
+            git fetch origin Dev:Dev
+            echo "Fetched Dev branch from origin."
+          else
+            echo "No Dev branch found on remote or locally. Creating Dev branch from enhanced."
+            git checkout -b Dev
+            git push origin Dev
+            git checkout enhanced
+          fi
 
       - name: Check for new commits from upstream
         id: check_commits
@@ -50,51 +64,45 @@ jobs:
         run: |
           git push https://x-access-token:${PAT_WORKFLOW}@github.com/${{ github.repository }} enhanced
 
-      - name: Create Pull Request from enhanced into dev if new commits exist
+      - name: Create Pull Request from enhanced into Dev if new commits exist
         if: steps.check_commits.outputs.new_commits != '0'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.PAT_WORKFLOW }}
           commit-message: "Sync: Merge new upstream commits into fork enhanced"
-          title: "Sync: Merge new upstream commits into dev"
+          title: "Sync: Merge new upstream commits into Dev"
           body: |
-            Automated PR to sync new commits from upstream enhanced branch into dev for manual review.
+            Automated PR to sync new commits from upstream enhanced branch into Dev for manual review.
           base: Dev
           branch: enhanced
 
-      # --------- NEW OPTION: If no new upstream commits, check enhanced vs dev ----------
-      - name: Check for enhanced commits not in dev
+      # --------- NEW OPTION: If no new upstream commits, check enhanced vs Dev ----------
+      - name: Check for enhanced commits not in Dev
         if: steps.check_commits.outputs.new_commits == '0'
         id: check_enhanced_vs_dev
         run: |
-          # Find all commit hashes in enhanced not in dev (newest first)
+          # Find all commit hashes in enhanced not in Dev (newest first)
           COMMITS=$(git rev-list Dev..enhanced)
           echo "commits=$COMMITS" >> $GITHUB_OUTPUT
 
-      - name: Create PRs for each new commit from enhanced to dev
+      - name: Create PRs for each new commit from enhanced to Dev
         if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits != ''
         env:
           PAT_WORKFLOW: ${{ secrets.PAT_WORKFLOW }}
         run: |
-          #!/bin/bash
           set -e
-          # Get commit hashes, oldest first
           COMMITS=$(git rev-list --reverse Dev..enhanced)
           for COMMIT in $COMMITS; do
-            # Create a temp branch for this commit
             BRANCH_NAME="sync-enhanced-to-Dev-$COMMIT"
             git checkout Dev
             git checkout -b $BRANCH_NAME
             git cherry-pick $COMMIT
 
-            # Push the branch
             git push https://x-access-token:${PAT_WORKFLOW}@github.com/${{ github.repository }} $BRANCH_NAME
 
-            # Get commit message for PR title/body
             TITLE=$(git log -1 --pretty=format:"%s" $COMMIT)
             BODY=$(git log -1 --pretty=format:"%B" $COMMIT)
 
-            # Create PR using GitHub CLI
             gh pr create \
               --base Dev \
               --head $BRANCH_NAME \
@@ -105,4 +113,4 @@ jobs:
 
       - name: No new commits to sync
         if: steps.check_commits.outputs.new_commits == '0' && steps.check_enhanced_vs_dev.outputs.commits == ''
-        run: echo "No new commits to sync from enhanced to dev."
+        run: echo "No new commits to sync from enhanced to Dev."
